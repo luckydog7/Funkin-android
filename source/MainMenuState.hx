@@ -10,8 +10,7 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
-//import io.newgrounds.NG;
-import flixel.ui.FlxVirtualPad;
+import io.newgrounds.NG;
 import lime.app.Application;
 
 using StringTools;
@@ -31,7 +30,7 @@ class MainMenuState extends MusicBeatState
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 
-	var _pad:FlxVirtualPad;
+	var trackedAssets:Array<Dynamic> = [];
 
 	override function create()
 	{
@@ -87,7 +86,7 @@ class MainMenuState extends MusicBeatState
 
 		FlxG.camera.follow(camFollow, null, 0.06);
 
-		var versionShit:FlxText = new FlxText(5, FlxG.height - 18, 0, "v" + Application.current.meta.get('version') + " ported by luckydog7", 12);
+		var versionShit:FlxText = new FlxText(5, FlxG.height - 18, 0, "v" + Application.current.meta.get('version'), 12);
 		versionShit.scrollFactor.set();
 		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(versionShit);
@@ -97,10 +96,6 @@ class MainMenuState extends MusicBeatState
 		changeItem();
 
 		super.create();
-
-		_pad = new FlxVirtualPad(UP_DOWN, A_B);
-		_pad.alpha = 0.75;
-		this.add(_pad);
 	}
 
 	var selectedSomethin:Bool = false;
@@ -114,35 +109,24 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
-			var UP_P = _pad.buttonUp.justPressed;
-			var DOWN_P = _pad.buttonDown.justPressed;
-			var BACK = _pad.buttonB.justPressed;
-			var ACCEPT = _pad.buttonA.justPressed;
-
-
-			if (BACK || FlxG.android.justReleased.BACK)
-			{
-				FlxG.switchState(new TitleState());
-			}
-
-			if (UP_P)
+			if (controls.UP_P)
 			{
 				FlxG.sound.play('assets/sounds/scrollMenu' + TitleState.soundExt);
 				changeItem(-1);
 			}
 
-			if (DOWN_P)
+			if (controls.DOWN_P)
 			{
 				FlxG.sound.play('assets/sounds/scrollMenu' + TitleState.soundExt);
 				changeItem(1);
 			}
 
-			if (BACK || FlxG.android.justReleased.BACK)
+			if (controls.BACK)
 			{
 				FlxG.switchState(new TitleState());
 			}
 
-			if (ACCEPT)
+			if (controls.ACCEPT)
 			{
 				if (optionShit[curSelected] == 'donate')
 				{
@@ -176,7 +160,8 @@ class MainMenuState extends MusicBeatState
 							FlxFlicker.flicker(spr, 1, 0.06, false, false, function(flick:FlxFlicker)
 							{
 								var daChoice:String = optionShit[curSelected];
-
+								unloadAssets();
+								
 								switch (daChoice)
 								{
 									case 'story mode':
@@ -226,5 +211,19 @@ class MainMenuState extends MusicBeatState
 
 			spr.updateHitbox();
 		});
+	}
+
+	override function add(Object:flixel.FlxBasic):flixel.FlxBasic
+	{
+		trackedAssets.insert(trackedAssets.length, Object);
+		return super.add(Object);
+	}
+
+	function unloadAssets():Void
+	{
+		for (asset in trackedAssets)
+		{
+			remove(asset);
+		}
 	}
 }
