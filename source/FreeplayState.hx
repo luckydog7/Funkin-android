@@ -9,7 +9,6 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-import flixel.ui.FlxVirtualPad;
 
 using StringTools;
 
@@ -29,7 +28,7 @@ class FreeplayState extends MusicBeatState
 	private var grpSongs:FlxTypedGroup<Alphabet>;
 	private var curPlaying:Bool = false;
 
-	var _pad:FlxVirtualPad;
+	var trackedAssets:Array<Dynamic> = [];
 
 	override function create()
 	{
@@ -76,14 +75,6 @@ class FreeplayState extends MusicBeatState
 			songs.push('Winter-Horrorland');
 		}
 
-		if (StoryMenuState.weekUnlocked[6] || isDebug)
-		{
-			songs.push('Senpai');
-			songs.push('Roses');
-			songs.push('Thorns');
-			// songs.push('Winter-Horrorland');
-		}
-		songs.push('monster');
 		// LOAD MUSIC
 
 		// LOAD CHARACTERS
@@ -151,10 +142,6 @@ class FreeplayState extends MusicBeatState
 		 */
 
 		super.create();
-
-		_pad = new FlxVirtualPad(FULL, A_B);
-    	_pad.alpha = 0.65;
-    	this.add(_pad);
 	}
 
 	override function update(elapsed:Float)
@@ -173,12 +160,9 @@ class FreeplayState extends MusicBeatState
 
 		scoreText.text = "PERSONAL BEST:" + lerpScore;
 
-		var upP = _pad.buttonUp.justPressed;
-		var downP = _pad.buttonDown.justPressed;
-		var LEFT_P = _pad.buttonLeft.justPressed;
-		var RIGHT_P = _pad.buttonRight.justPressed;
-		var accepted = _pad.buttonA.justPressed;
-		var BACK = _pad.buttonB.justPressed;
+		var upP = controls.UP_P;
+		var downP = controls.DOWN_P;
+		var accepted = controls.ACCEPT;
 
 		if (upP)
 		{
@@ -189,12 +173,12 @@ class FreeplayState extends MusicBeatState
 			changeSelection(1);
 		}
 
-		if (LEFT_P)
+		if (controls.LEFT_P)
 			changeDiff(-1);
-		if (RIGHT_P)
+		if (controls.RIGHT_P)
 			changeDiff(1);
 
-		if (BACK || FlxG.android.justReleased.BACK)
+		if (controls.BACK)
 		{
 			FlxG.switchState(new MainMenuState());
 		}
@@ -208,6 +192,7 @@ class FreeplayState extends MusicBeatState
 			PlayState.SONG = Song.loadFromJson(poop, songs[curSelected].toLowerCase());
 			PlayState.isStoryMode = false;
 			PlayState.storyDifficulty = curDifficulty;
+			unloadAssets();
 			FlxG.switchState(new PlayState());
 			if (FlxG.sound.music != null)
 				FlxG.sound.music.stop();
@@ -240,10 +225,10 @@ class FreeplayState extends MusicBeatState
 
 	function changeSelection(change:Int = 0)
 	{
-		/* #if !switch
+		#if !switch
 		NGio.logEvent('Fresh');
 		#end
-		*/
+
 		// NGio.logEvent('Fresh');
 		FlxG.sound.play('assets/sounds/scrollMenu' + TitleState.soundExt, 0.4);
 
@@ -278,6 +263,20 @@ class FreeplayState extends MusicBeatState
 				item.alpha = 1;
 				// item.setGraphicSize(Std.int(item.width));
 			}
+		}
+	}
+
+	override function add(Object:flixel.FlxBasic):flixel.FlxBasic
+	{
+		trackedAssets.insert(trackedAssets.length, Object);
+		return super.add(Object);
+	}
+
+	function unloadAssets():Void
+	{
+		for (asset in trackedAssets)
+		{
+			remove(asset);
 		}
 	}
 }
