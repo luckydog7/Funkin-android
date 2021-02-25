@@ -1207,6 +1207,7 @@ class PlayState extends MusicBeatState
 			if (storyPlaylist.length <= 0)
 			{
 				FlxG.sound.playMusic('assets/music/freakyMenu' + TitleState.soundExt);
+				unloadAssets();
 
 				FlxG.switchState(new StoryMenuState());
 
@@ -1248,6 +1249,7 @@ class PlayState extends MusicBeatState
 
 				PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + difficulty, PlayState.storyPlaylist[0]);
 				FlxG.sound.music.stop();
+				unloadAssets();
 
 				FlxG.switchState(new PlayState());
 			}
@@ -1255,6 +1257,7 @@ class PlayState extends MusicBeatState
 		else
 		{
 			trace('WENT BACK TO FREEPLAY??');
+			unloadAssets();
 			FlxG.switchState(new FreeplayState());
 		}
 	}
