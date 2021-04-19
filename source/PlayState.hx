@@ -44,6 +44,7 @@ import openfl.filters.ShaderFilter;
 #if mobile
 import Mobilecontrols;
 #end
+//Yow is cring.
 
 using StringTools;
 
@@ -83,6 +84,8 @@ class PlayState extends MusicBeatState
 	private var gfSpeed:Int = 1;
 	private var health:Float = 1;
 	private var combo:Int = 0;
+	private var misses:Float = 0;
+	private var notehit:Float = 0;
 
 	private var healthBarBG:FlxSprite;
 	private var healthBar:FlxBar;
@@ -153,6 +156,7 @@ class PlayState extends MusicBeatState
 		#if mobile
 		mcontrols = new Mobilecontrols();
 		downscroll_isenabled = mcontrols.downscroll_isenabled;
+        mcontrols = new Mobilecontrols();
 		#end
 
 		
@@ -179,7 +183,7 @@ class PlayState extends MusicBeatState
 		switch (SONG.song.toLowerCase())
 		{
 			case 'tutorial':
-				dialogue = ["Hey you're pretty cute.", 'Use the arrow keys to keep up \nwith me singing.'];
+				dialogue = CoolUtil.coolTextFile(Paths.txt('tutorial/tutDialogue'));
 			case 'bopeebo':
 				dialogue = [
 					'HEY!',
@@ -557,6 +561,17 @@ class PlayState extends MusicBeatState
 		                            add(waveSprite);
 		                            add(waveSpriteFG);
 		                    */
+					//This is what delayed demo 3. Fuck backgrounds.
+		          }
+		          case 'improbable-outset' | 'madness':
+		          {
+		                  defaultCamZoom = 0.9;
+		                  curStage = 'hell';
+		                  var bg:FlxSprite = new FlxSprite(-600, -200).loadGraphic(Paths.image('trickybg'));
+		                  bg.antialiasing = true;
+		                  bg.scrollFactor.set(0.9, 0.9);
+		                  bg.active = false;
+		                  add(bg);
 		          }
 		          default:
 		          {
@@ -600,6 +615,7 @@ class PlayState extends MusicBeatState
 			case 'schoolEvil':
 				gfVersion = 'gf-pixel';
 		}
+		//no week 7 yet
 
 		if (curStage == 'limo')
 			gfVersion = 'gf-car';
@@ -647,6 +663,12 @@ class PlayState extends MusicBeatState
 				dad.x -= 150;
 				dad.y += 100;
 				camPos.set(dad.getGraphicMidpoint().x + 300, dad.getGraphicMidpoint().y);
+			case 'trickymask':
+				dad.x -= 170;
+				dad.y += 10;
+			case 'tricky':
+				dad.x -= 170;
+				dad.y += 10; 
 		}
 
 		boyfriend = new Boyfriend(770, 450, SONG.player1);
@@ -685,6 +707,8 @@ class PlayState extends MusicBeatState
 				boyfriend.y += 220;
 				gf.x += 180;
 				gf.y += 300;
+			case 'hell':
+				boyfriend.x += 250;
 		}
 
 		add(gf);
@@ -1400,8 +1424,9 @@ class PlayState extends MusicBeatState
 		}
 
 		super.update(elapsed);
+		//This took us 4 days.
 
-		scoreTxt.text = "Score:" + songScore;
+		scoreTxt.text = "Score:" + songScore + "| Misses:" + misses + "| Note hits:" + notehit + "| Combo:" + combo + "| Health:" + healthBar.precent;
 
 		#if android
 		var enterPressed = FlxG.keys.justPressed.ENTER || FlxG.android.justReleased.BACK;
@@ -1454,17 +1479,27 @@ class PlayState extends MusicBeatState
 
 		if (health > 2)
 			health = 2;
-
-		if (healthBar.percent < 20)
-			iconP1.animation.curAnim.curFrame = 1;
-		else
-			iconP1.animation.curAnim.curFrame = 0;
-
-		if (healthBar.percent > 80)
-			iconP2.animation.curAnim.curFrame = 1;
-		else
-			iconP2.animation.curAnim.curFrame = 0;
-
+//healthicons yeeeeeeeeeee
+        if (healthBar.percent < 20)
+    {
+            iconP1.animation.curAnim.curFrame = 1;
+            iconP2.animation.curAnim.curFrame = 2;
+    }
+        else
+    {
+            iconP1.animation.curAnim.curFrame = 0;
+            iconP2.animation.curAnim.curFrame = 0;
+    }
+        if (healthBar.percent > 80)
+    {
+            iconP2.animation.curAnim.curFrame = 1;
+            iconP1.animation.curAnim.curFrame = 2;
+    }
+        else
+    {
+            iconP2.animation.curAnim.curFrame = 0;
+            iconP1.animation.curAnim.curFrame = 0;
+    }
 		/* if (FlxG.keys.justPressed.NINE)
 			FlxG.switchState(new Charting()); */
 
@@ -1723,13 +1758,18 @@ class PlayState extends MusicBeatState
 				// daNote.y = (strumLine.y - (songTime - daNote.strumTime) * (0.45 * PlayState.SONG.speed));
 
 				// I wouldn't have found this error with downscroll if I hadn't looked into the kade engine code (thanks to kade dev)
+				//Tysm Poyo for helping us find this lmao
 				if (daNote.y < -daNote.height && !downscroll_isenabled || (daNote.y >= strumLine.y + 106) && downscroll_isenabled)
 				{
 					if (daNote.tooLate || !daNote.wasGoodHit)
 					{
 						health -= 0.0475;
 						vocals.volume = 0;
+						songScore -= 10;
+						combo = 0;
+						misses += 1;
 					}
+
 
 					daNote.active = false;
 					daNote.visible = false;
@@ -1741,6 +1781,28 @@ class PlayState extends MusicBeatState
 				
 			});
 		}
+//antimash for da bois
+            var mashing:Int = 0;
+
+                if (FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN || FlxG.keys.pressed.RIGHT || FlxG.keys.pressed.LEFT)
+                {
+                    mashing += 1;
+                }
+
+                if (mashing > 3)
+                {
+                    health = 0;
+                }
+
+                if (daNote.wasGoodHit)
+                {
+                    mashing -= 0;
+                }
+
+                if (mashing < 0)
+                {
+                    mashing = 0;
+                }
 
 		if (!inCutscene)
 			keyShit();
@@ -2160,7 +2222,7 @@ class PlayState extends MusicBeatState
 
 		if (boyfriend.holdTimer > Conductor.stepCrochet * 4 * 0.001 && !up && !down && !right && !left)
 		{
-			if (boyfriend.animation.curAnim.name.startsWith('sing') && !boyfriend.animation.curAnim.name.endsWith('miss'))
+			if (boyfriend.animation.curAnim.name.startsWith('sing') && !boyfriend.animation.curAnim.name.endsWith('idle'))
 			{
 				boyfriend.playAnim('idle');
 			}
@@ -2207,14 +2269,14 @@ class PlayState extends MusicBeatState
 	{
 		if (!boyfriend.stunned)
 		{
-			health -= 0.04;
-			if (combo > 5 && gf.animOffsets.exists('sad'))
+			health -= 0;
+			if (combo > 5 && gf.animOffsets.exists('idle'))
 			{
-				gf.playAnim('sad');
+				gf.playAnim('idle');
 			}
-			combo = 0;
+			combo -= 0;
 
-			songScore -= 10;
+			songScore -= 0;
 
 			FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 			// FlxG.sound.play(Paths.sound('missnote1'), 1, false);
@@ -2231,13 +2293,13 @@ class PlayState extends MusicBeatState
 			switch (direction)
 			{
 				case 0:
-					boyfriend.playAnim('singLEFTmiss', true);
+					boyfriend.playAnim('singLEFT', true);
 				case 1:
-					boyfriend.playAnim('singDOWNmiss', true);
+					boyfriend.playAnim('singDOWN', true);
 				case 2:
-					boyfriend.playAnim('singUPmiss', true);
+					boyfriend.playAnim('singUP', true);
 				case 3:
-					boyfriend.playAnim('singRIGHTmiss', true);
+					boyfriend.playAnim('singRIGHT', true);
 			}
 		}
 	}
@@ -2288,6 +2350,7 @@ class PlayState extends MusicBeatState
 			{
 				popUpScore(note.strumTime);
 				combo += 1;
+				notehit += 1;
 			}
 
 			if (note.noteData >= 0)
@@ -2429,6 +2492,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
+	//500 subs
 	var lightningStrikeBeat:Int = 0;
 	var lightningOffset:Int = 8;
 
@@ -2490,6 +2554,7 @@ class PlayState extends MusicBeatState
 		if (curBeat % 8 == 7 && curSong == 'Bopeebo')
 		{
 			boyfriend.playAnim('hey', true);
+			gf.playAnim('cheer', true);
 		}
 
 		if (curBeat % 16 == 15 && SONG.song == 'Tutorial' && dad.curCharacter == 'gf' && curBeat > 16 && curBeat < 48)
